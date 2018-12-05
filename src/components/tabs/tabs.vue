@@ -11,6 +11,7 @@
     </router-link>
     <router-link
       to="/singer"
+      tag="div"
       class="tab-item"
     >
       <span class="tab-link">
@@ -19,6 +20,7 @@
     </router-link>
     <router-link
       to="/rank"
+      tag="div"
       class="tab-item"
     >
       <span class="tab-link">
@@ -27,6 +29,7 @@
     </router-link>
     <router-link
       to="/search"
+      tag="div"
       class="tab-item"
     >
       <span class="tab-link">
