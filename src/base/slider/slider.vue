@@ -121,6 +121,9 @@
         this._setSliderWidth(true)
         this.slider.refresh() //重新计算
       })
+    },
+    destroyed () {
+      clearTimeout(this.timer)
     }
   }
 </script>
