@@ -1,4 +1,4 @@
-export const commonParams = {
+export const apiCommonParams = {
   g_tk: 5381,
   format: 'json',
   inCharset: 'utf-8',
@@ -6,7 +6,7 @@ export const commonParams = {
   notice: 0
 }
 
-export const options = {
+export const apiOptions = {
   param: 'jsonpCallback'
 }
 

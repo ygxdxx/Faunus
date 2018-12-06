@@ -1,6 +1,6 @@
 import originJSONP from 'jsonp'
 
-export function jsonp (url, data, option) {
+export function commonJSONP (url, data, option) {
   url += (url.includes('?') ? '&' : '?') + buildParams(data)
   return new Promise((resolve, reject) => {
     originJSONP(url, option, (err, data) => {

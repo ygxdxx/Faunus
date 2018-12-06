@@ -1,7 +1,14 @@
 <template>
   <div class="recommend">
     <div class="recommend-content">
-      <div class="slider-wrapper">
+      <div class="slider-wrapper" v-if="sliders.length">
+        <base-slider>
+          <div v-for="item in sliders">
+            <a :href="item.linkUrl">
+              <img :src="item.picUrl">
+            </a>
+          </div>
+        </base-slider>
       </div>
       <div class="recommend-list">
         <h1 class="list-title">热门歌曲推荐</h1>
@@ -13,22 +20,33 @@
 </template>
 
 <script>
-  import {getRecommend} from '../../api/recommend'
-  import {ERR_OK} from '../../api/config'
+  import {getRecommend} from 'api/recommend'
+  import {ERR_OK} from 'api/config'
+  import BaseSlider from 'base/slider/slider'
 
   export default {
     name: 'Recommend',
     created () {
       this._getRecommend()
     },
+    data () {
+      return {
+        sliders: []
+      }
+    },
     methods: {
       _getRecommend () {
         getRecommend().then((res) => {
           if (res.code === ERR_OK) {
-            console.log(res.data.slider)
+            const data = res.data
+            // console.log(data)
+            this.sliders = data.slider
           }
         })
       }
+    },
+    components: {
+      BaseSlider
     }
   }
 </script>
@@ -48,7 +66,6 @@
         position relative
         width 100%
         overflow hidden
-        border 1px solid $color-theme
       .recommend-list
         .list-title
           height 65px
@@ -56,7 +73,6 @@
           text-align center
           color $color-theme
           font-size $font-size-medium
-          border 1px solid $color-theme
         .item
           display flex
           box-sizing border-box
