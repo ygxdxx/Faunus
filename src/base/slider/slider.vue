@@ -1,9 +1,21 @@
 <template>
-  <div class="slider" ref="slider">
-    <div class="slider-group" ref="sliderGroup">
+  <div
+    ref="slider"
+    class="slider"
+  >
+    <div
+      ref="sliderGroup"
+      class="slider-group"
+    >
       <slot></slot>
     </div>
     <div class="dots">
+      <span
+        v-for="(item,index) in dots"
+        :class="{active: index === currentPageIndex}"
+        class="dot"
+      >
+      </span>
     </div>
   </div>
 </template>
@@ -14,6 +26,12 @@
 
   export default {
     name: 'BaseSlider',
+    data () {
+      return {
+        dots: [],
+        currentPageIndex: 0
+      }
+    },
     props: {
       loop: {
         type: Boolean,
@@ -29,7 +47,7 @@
       }
     },
     methods: {
-      _setSliderWidth () {
+      _setSliderWidth (isResize = false) {
         this.children = this.$refs.sliderGroup.children
         let oneSliderWidth = this.$refs.slider.clientWidth
         let totalWidth = 0
@@ -41,8 +59,8 @@
         }
 
         //better-scroll组件可以循环滚动的时候会额外增加2个元素的宽度
-        if (this.loop) {
-          totalWidth += 2*oneSliderWidth
+        if (this.loop && !isResize) {
+          totalWidth += 2 * oneSliderWidth
         }
 
         this.$refs.sliderGroup.style.width = totalWidth + 'px'
@@ -55,16 +73,54 @@
           snap: true,
           snapLoop: this.loop,
           snapThreshold: 0.3,
-          snapSpeed: 400,
-          click: true
+          snapSpeed: 400
         })
+
+        this.slider.on('scrollEnd', () => {
+          let pageIndex = this.slider.getCurrentPage().pageX
+          if (this.loop) {
+            pageIndex -= 1
+          }
+          this.currentPageIndex = pageIndex
+
+          if (this.autoPlay) {
+            clearTimeout(this.timer)
+            this._play()
+          }
+        })
+      },
+      _initSliderDots () {
+        this.dots = new Array(this.children.length)
+      },
+      _play () {
+        let pageIndex = this.currentPageIndex + 1
+        if (this.loop) {
+          pageIndex += 1
+        }
+        this.timer = setTimeout(() => {
+          this.slider.goToPage(pageIndex, 0, 400)
+        }, this.interval)
       }
     },
     mounted () {
+      //添加20ms延迟是为了配合页面刷新的频率
       setTimeout(() => {
         this._setSliderWidth()
+        this._initSliderDots()
         this._initSlider()
+
+        if (this.autoPlay) {
+          this._play()
+        }
       }, 20)
+
+      window.addEventListener('resize', () => {
+        if (!this.slider) {
+          return
+        }
+        this._setSliderWidth(true)
+        this.slider.refresh() //重新计算
+      })
     }
   }
 </script>
