@@ -1,6 +1,6 @@
 <template>
   <div class="singer">
-
+    <base-listview :data="singerList"/>
   </div>
 </template>
 
@@ -8,6 +8,7 @@
   import {getSingerList} from 'api/singer'
   import {ERR_OK} from 'api/config'
   import SingerClz from 'common/js/singerClz'
+  import BaseListview from 'base/listview/listview'
 
   const HOT_NAME = '热门'
   const HOT_SINGER_LEN = 10
@@ -15,14 +16,13 @@
   export default {
     name: 'Singer',
     created () {
-      this._getSingerList()
+        this._getSingerList()
     },
     methods: {
       _getSingerList () {
         getSingerList().then((res) => {
           if (res.code === ERR_OK) {
-            this.singerList = res.data.list
-            console.log(this._rebuildSingerData(this.singerList))
+            this.singerList = this._rebuildSingerData(res.data.list)
           }
         })
       },
@@ -56,7 +56,7 @@
         let normList = []
         for (let key in map) {
           let obj = map[key]
-          if (obj.title.match(/[a-zA-Z]/)) {
+          if (key.match(/[a-zA-Z]/)) {
             normList.push(obj)
           } else if (Object.is(obj.title, HOT_NAME)) {
             hotList.push(obj)
@@ -65,13 +65,16 @@
         normList.sort((a, b) => {
           return a.title.charCodeAt(0) - b.title.charCodeAt(0)
         })
-        return [...hotList,...normList]
+        return [...hotList, ...normList]
       }
     },
     data () {
       return {
         singerList: []
       }
+    },
+    components: {
+      BaseListview
     }
   }
 </script>
