@@ -52,9 +52,7 @@
     name: 'Recommend',
     created () {
       this._getRecommend()
-      setTimeout(() => {
-        this._getDiscList()
-      }, 2000)
+      this._getDiscList()
     },
     data () {
       return {
@@ -100,7 +98,7 @@
   .recommend
     position fixed
     width 100%
-    top 88px
+    top $top-height
     bottom 0
     .recommend-content
       height 100%
