@@ -5,8 +5,12 @@
 </template>
 
 <script>
-  import {getSingerList} from '../../api/singer'
-  import {ERR_OK} from '../../api/config'
+  import {getSingerList} from 'api/singer'
+  import {ERR_OK} from 'api/config'
+  import SingerClz from 'common/js/singerClz'
+
+  const HOT_NAME = '热门'
+  const HOT_SINGER_LEN = 10
 
   export default {
     name: 'Singer',
@@ -18,9 +22,50 @@
         getSingerList().then((res) => {
           if (res.code === ERR_OK) {
             this.singerList = res.data.list
-            console.log(this.singerList)
+            console.log(this._rebuildSingerData(this.singerList))
           }
         })
+      },
+      _rebuildSingerData (list) {
+        let map = {
+          hot: {
+            title: HOT_NAME,
+            items: []
+          }
+        }
+        list.forEach((item, index) => {
+          if (index < HOT_SINGER_LEN) {
+            map.hot.items.push(new SingerClz(
+              item.Fsinger_mid,
+              item.Fsinger_name
+            ))
+          }
+          const key = item.Findex
+          if (!map.hasOwnProperty(key)) {
+            map[key] = {
+              title: key,
+              items: []
+            }
+          }
+          map[key].items.push(new SingerClz(
+            item.Fsinger_mid,
+            item.Fsinger_name
+          ))
+        })
+        let hotList = []
+        let normList = []
+        for (let key in map) {
+          let obj = map[key]
+          if (obj.title.match(/[a-zA-Z]/)) {
+            normList.push(obj)
+          } else if (Object.is(obj.title, HOT_NAME)) {
+            hotList.push(obj)
+          }
+        }
+        normList.sort((a, b) => {
+          return a.title.charCodeAt(0) - b.title.charCodeAt(0)
+        })
+        return [...hotList,...normList]
       }
     },
     data () {
