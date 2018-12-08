@@ -39,7 +39,7 @@
       },
       autoPlay: {
         type: Boolean,
-        default: true
+        default: false
       },
       interval: {
         type: Number,
@@ -66,6 +66,7 @@
         this.$refs.sliderGroup.style.width = totalWidth + 'px'
       },
       _initSlider () {
+        //better-scroll第一个参数需要传入进行滚动的DOM元素
         this.slider = new BScroll(this.$refs.slider, {
           scrollX: true,
           scrollY: false,
@@ -78,9 +79,9 @@
 
         this.slider.on('scrollEnd', () => {
           let pageIndex = this.slider.getCurrentPage().pageX
-          if (this.loop) {
-            pageIndex -= 1
-          }
+          // if (this.loop) {
+          //   pageIndex -= 1
+          // }
           this.currentPageIndex = pageIndex
 
           if (this.autoPlay) {
@@ -94,9 +95,9 @@
       },
       _play () {
         let pageIndex = this.currentPageIndex + 1
-        if (this.loop) {
-          pageIndex += 1
-        }
+        // if (this.loop) {
+        //   pageIndex += 1
+        // }
         this.timer = setTimeout(() => {
           this.slider.goToPage(pageIndex, 0, 400)
         }, this.interval)
@@ -121,6 +122,7 @@
         this._setSliderWidth(true)
         this.slider.refresh() //重新计算
       })
+
     },
     destroyed () {
       clearTimeout(this.timer)
