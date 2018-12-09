@@ -4,6 +4,7 @@
       ref="scroll"
       :data="discList"
       class="recommend-content"
+      v-if="discList.length"
     >
       <div>
         <div class="slider-wrapper" v-if="sliders.length">

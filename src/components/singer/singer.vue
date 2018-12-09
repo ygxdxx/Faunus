@@ -16,7 +16,7 @@
   export default {
     name: 'Singer',
     created () {
-        this._getSingerList()
+      this._getSingerList()
     },
     methods: {
       _getSingerList () {
@@ -56,9 +56,9 @@
         let normList = []
         for (let key in map) {
           let obj = map[key]
-          if (key.match(/[a-zA-Z]/)) {
+          if (obj.title.match(/[a-zA-Z]/)) {
             normList.push(obj)
-          } else if (Object.is(obj.title, HOT_NAME)) {
+          } else if (Object.is(obj.title,HOT_NAME)) {
             hotList.push(obj)
           }
         }
