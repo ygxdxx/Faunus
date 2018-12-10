@@ -7,12 +7,18 @@
   import {mapGetters} from 'vuex'
   import {getSingerDetail} from 'api/singer'
   import {ERR_OK} from 'api/config'
+  import {createSong} from 'common/js/songClz'
 
   export default {
     name: 'SingerDetail',
+    data () {
+      return {
+        songs: []
+      }
+    },
     computed: {
       ...mapGetters([
-        'singer' //这是一个singer对象作为返回值
+        'singer'
       ])
     },
     created () {
@@ -20,15 +26,26 @@
     },
     methods: {
       _getSingerDetail () {
-        if(!this.singer.id){
+        if (!this.singer.id) {
           this.$router.push('/singer')
           return
         }
         getSingerDetail(this.singer.id).then((res) => {
           if (res.code === ERR_OK) {
-            console.log(res.data)
+            console.log(res)
+            console.log(this._buildSongsData(res.data.list))
           }
         })
+      },
+      _buildSongsData (list) {
+        let ret = []
+        list.forEach((item) => {
+          let {musicData} = item
+          if (musicData.songid && musicData.albummid) {
+            ret.push(createSong(musicData))
+          }
+        })
+        return ret
       }
     }
   }
