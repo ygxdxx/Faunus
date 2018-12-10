@@ -18,14 +18,18 @@
         <ul>
           <li
             v-for="innerItem of outerItem.items"
+            @click="selectItem(innerItem)"
             :key="innerItem.id"
-            class="list-group-item">
+            class="list-group-item"
+          >
             <img
               v-lazy="innerItem.avatar"
-              class="avatar">
+              class="avatar"
+            >
             <p
               v-html="innerItem.name"
-              class="name">
+              class="name"
+            >
             </p>
           </li>
         </ul>
@@ -128,6 +132,9 @@
       },
       onScroll (posObj) {
         this.scrollY = posObj.y
+      },
+      selectItem (item) {
+        this.$emit('select',item)
       },
       _scrollToElement (index) {
         this.scrollY = -this.listHeight[index]

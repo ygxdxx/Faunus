@@ -1,6 +1,12 @@
 <template>
   <div class="singer">
-    <base-listview :data="singerList"/>
+    <base-listview
+      @select="selectSinger"
+      :data="singerList"
+    />
+    <transition name="slide">
+      <router-view/>
+    </transition>
   </div>
 </template>
 
@@ -9,6 +15,7 @@
   import {ERR_OK} from 'api/config'
   import SingerClz from 'common/js/singerClz'
   import BaseListview from 'base/listview/listview'
+  import {mapMutations} from 'vuex'
 
   const HOT_NAME = '热门'
   const HOT_SINGER_LEN = 10
@@ -19,6 +26,12 @@
       this._getSingerList()
     },
     methods: {
+      selectSinger (singer) {
+        this.$router.push({
+          path: `/singer/${singer.id}`
+        })
+        this.setSinger(singer)
+      },
       _getSingerList () {
         getSingerList().then((res) => {
           if (res.code === ERR_OK) {
@@ -58,7 +71,7 @@
           let obj = map[key]
           if (obj.title.match(/[a-zA-Z]/)) {
             normList.push(obj)
-          } else if (Object.is(obj.title,HOT_NAME)) {
+          } else if (Object.is(obj.title, HOT_NAME)) {
             hotList.push(obj)
           }
         }
@@ -66,7 +79,10 @@
           return a.title.charCodeAt(0) - b.title.charCodeAt(0)
         })
         return [...hotList, ...normList]
-      }
+      },
+      ...mapMutations({
+        setSinger:'SET_SINGER'
+      })
     },
     data () {
       return {
@@ -87,4 +103,8 @@
     width 100%
     top $top-height
     bottom 0
+  .slide-enter-active, .slider-leave-active
+    transition all 0.5s
+  .slide-enter, .slider-leave-to
+    transform translate3d(100%, 0, 0)
 </style>
