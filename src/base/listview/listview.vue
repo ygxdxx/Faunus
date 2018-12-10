@@ -3,7 +3,11 @@
     ref="scroller"
     :data="data"
     v-if="data.length"
-    class="listview">
+    :listenScroll="listenScroll"
+    :probeType="probeType"
+    @scroll="onScroll"
+    class="listview"
+  >
     <ul>
       <li
         v-for="outerItem of data"
@@ -31,17 +35,26 @@
       @touchstart="onAlphabetTouchStart"
       @touchmove.stop.prevent="onAlphabetTouchMove"
       @touchend="onAlphabetTouchEnd"
-      class="list-shortcut">
+      class="list-shortcut"
+    >
       <ul>
         <li
           v-for="(letter,index) in buildLetterList"
           :key="letter"
           :data-index="index"
+          :class="{'current': currentIndex === index}"
           class="item"
         >
           {{letter}}
         </li>
       </ul>
+    </div>
+    <div
+      ref="fixed"
+      v-show="fixedTitle"
+      class="list-fixed"
+    >
+      <h1 class="fixed-title">{{fixedTitle}}</h1>
     </div>
   </base-scroll>
 </template>
@@ -51,6 +64,7 @@
   import {processAttr} from 'common/js/dom'
 
   const LETTER_HEIGHT = 18
+  const TITLE_HEIGHT = 30
 
   export default {
     name: 'BaseListview',
@@ -58,6 +72,13 @@
       data: {
         type: Array,
         default: []
+      }
+    },
+    data () {
+      return {
+        scrollY: -1,
+        currentIndex: 0,
+        diff: 0
       }
     },
     components: {
@@ -68,6 +89,12 @@
         return this.data.map((item) => {
           return item.title.substr(0, 1)
         })
+      },
+      fixedTitle () {
+        if (this.scrollY > 0) {
+          return ''
+        }
+        return this.data[this.currentIndex] ? this.data[this.currentIndex].title : ''
       }
     },
     methods: {
@@ -81,7 +108,7 @@
         }
       },
       onAlphabetTouchMove (e) {
-        if (this.touchStatus !== true) {
+        if (!this.touchStatus) {
           return
         }
         if (this.timer) {
@@ -91,21 +118,71 @@
           let currentTouchY = e.touches[0].pageY
           let deltaNum = Math.floor((currentTouchY - this.touches.firstTouchY) / LETTER_HEIGHT)
           let currentAnchorIndex = parseInt(this.touches.firstAnchorIndex) + deltaNum
-          console.log(currentAnchorIndex)
           if (parseInt(currentAnchorIndex) >= 0 && parseInt(currentAnchorIndex) < this.data.length) {
             this._scrollToElement(currentAnchorIndex)
           }
-        }, 18)
+        }, 20)
       },
       onAlphabetTouchEnd () {
         this.touchStatus = false
       },
+      onScroll (posObj) {
+        this.scrollY = posObj.y
+      },
       _scrollToElement (index) {
+        this.scrollY = -this.listHeight[index]
         this.$refs.scroller.scrollToElement(this.$refs.outerItem[index])
+      },
+      _caculateHeight () {
+        const list = this.$refs.outerItem
+        let totalHeight = 0
+        this.listHeight.push(totalHeight)
+        for (let i = 0, len = list.length; i < len; i++) {
+          let item = list[i]
+          totalHeight += item.clientHeight
+          this.listHeight.push(totalHeight)
+        }
       }
     },
     created () {
       this.touches = {}
+      this.listenScroll = true
+      this.listHeight = []
+      this.probeType = 3
+    },
+    watch: {
+      data () {
+        setTimeout(() => {
+          this._caculateHeight()
+        }, 20)
+      },
+      scrollY (currentY) {
+        //列表在顶部向下拉
+        if (currentY >= 0) {
+          this.currentIndex = 0
+          return
+        }
+        //列表在A-Z范围内
+        for (let i = 0, len = this.listHeight.length - 1; i < len; i++) {
+          let low = this.listHeight[i]
+          let high = this.listHeight[i + 1]
+          if (-currentY >= low && -currentY < high) {
+            this.currentIndex = i
+            this.diff = high + this.scrollY
+            return
+          }
+        }
+        //列表在底部向上拉
+        this.currentIndex = this.listHeight.length - 1
+      },
+      diff (newVal) {
+        let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? (newVal - TITLE_HEIGHT) : 0
+        if (this.fixedTop === fixedTop) {
+          return
+        }
+        this.fixedTop = fixedTop
+        this.$refs.fixed.style.transform = `translate3d(0,${fixedTop}px,0)`
+      }
     }
   }
 </script>
