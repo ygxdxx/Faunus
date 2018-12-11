@@ -1,6 +1,10 @@
 <template>
   <div class="music-list">
-    <div class="back" ref="back">
+    <div
+      @click="onBackClick"
+      ref="back"
+      class="back"
+    >
       <i class="icon-back"></i>
     </div>
     <h1 v-html="title" class="title"></h1>
@@ -9,6 +13,12 @@
       :style="bgStyle"
       class="bg-image"
     >
+      <div class="play-wrapper">
+        <div v-show="songs.length > 0" ref="playBtn" class="play">
+          <i class="icon-play"></i>
+          <span class="text">随机播放全部</span>
+        </div>
+      </div>
       <div ref="filter" class="filter"></div>
     </div>
     <div ref="layer" class="bg-layer"></div>
@@ -23,6 +33,9 @@
       <div class="song-list-wrapper">
         <song-list :songs="songs"/>
       </div>
+      <div v-show="!songs.length" class="loading-container">
+        <base-loading/>
+      </div>
     </base-scroll>
   </div>
 </template>
@@ -30,8 +43,13 @@
 <script>
   import SongList from 'base/song-list/song-list'
   import BaseScroll from 'base/scroll/scroll'
+  import BaseLoading from 'base/loading/loading'
+  import {prefixStyle} from 'common/js/dom'
 
   const RESERVED_HEIGHT = 40
+  //自动添加prefix
+  const TRANSFORM = prefixStyle('transform')
+  const BACKDROP = prefixStyle('backdrop-filter')
 
   export default {
     name: 'MusicList',
@@ -63,11 +81,8 @@
       scrollY (currentY) {
         //不能先进行滚动，再进行判断，会有闪动的效果出现；一定要先判断后滚动
         let translateY = Math.max(this.maxScrollDistance, currentY)
-        this.$refs.layer.style['transform'] = `translate3d(0,${translateY}px,0)`
-        this.$refs.layer.style['webkittransform'] = `translate3d(0,${translateY}px,0)`
-        let zIndex = 0
-        let scale = 1
-        let blur = 0
+        this.$refs.layer.style[TRANSFORM] = `translate3d(0,${translateY}px,0)`
+        let zIndex = 0, scale = 1, blur = 0
         const bgImageEle = this.$refs.bgImage
         let percent = Math.abs(currentY / this.imageHeight)
         if (currentY > 0) {
@@ -77,9 +92,7 @@
         } else {
           //向上推高斯模糊
           blur = Math.min(20 * percent, 20)
-          console.log(blur)
-          this.$refs.filter.style['backDrop-filter'] = `blur(${blur}px)`
-          this.$refs.filter.style['webkitBackDrop-filter'] = `blur(${blur}px)`
+          this.$refs.filter.style[BACKDROP] = `blur(${blur}px)`
         }
 
         if (currentY < this.maxScrollDistance) {
@@ -87,21 +100,27 @@
           bgImageEle.style.height = `${RESERVED_HEIGHT}px`
           bgImageEle.style.paddingTop = 0
           zIndex = 10
+          //播放按钮是否显示
+          this.$refs.playBtn.style.display = 'none'
         } else {
           bgImageEle.style.height = 0
           bgImageEle.style.paddingTop = '70%'
+          this.$refs.playBtn.style.display = ''
         }
         bgImageEle.style.zIndex = zIndex
-        bgImageEle.style['transform'] = `scale(${scale})`
-        bgImageEle.style['webkittransform'] = `scale(${scale})`
+        bgImageEle.style[TRANSFORM] = `scale(${scale})`
       }
     },
     methods: {
       onScroll (posObj) {
         this.scrollY = posObj.y
+      },
+      onBackClick () {
+        this.$router.back()
       }
     },
     components: {
+      BaseLoading,
       SongList,
       BaseScroll
     },
@@ -187,7 +206,7 @@
         left: 0
         width: 100%
         height: 100%
-        background: rgba(7, 17, 27, 0.4)
+        background: rgba(7, 17, 27, 0.3)
     .bg-layer
       position: relative
       height: 100%
