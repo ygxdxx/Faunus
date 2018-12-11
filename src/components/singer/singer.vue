@@ -30,10 +30,11 @@
         this.$router.push({
           path: `/singer/${singer.id}`
         })
+        //跳转的同时也将传递过来的歌手对象添加到Vuex中
         this.setSinger(singer)
       },
       _getSingerList () {
-        getSingerList().then((res) => {
+        getSingerList().then((res) =>  {
           if (res.code === ERR_OK) {
             this.singerList = this._rebuildSingerData(res.data.list)
           }

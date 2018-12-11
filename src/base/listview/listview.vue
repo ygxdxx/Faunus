@@ -133,8 +133,8 @@
       onScroll (posObj) {
         this.scrollY = posObj.y
       },
-      selectItem (item) {
-        this.$emit('select',item)
+      selectItem (singer) {
+        this.$emit('select',singer)
       },
       _scrollToElement (index) {
         this.scrollY = -this.listHeight[index]
