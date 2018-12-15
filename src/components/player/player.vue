@@ -1,22 +1,169 @@
 <template>
   <div v-show="playList.length>0" class="player">
-    <div v-show="fullScreen" class="normal-player">
-      播放器
-    </div>
-    <div v-show="!fullScreen" class="mini-player"></div>
+    <transition name="normal"
+                @enter="onEnter"
+                @after-enter="onAfterEnter"
+                @leave="onLeave"
+                @afterLeave="onAfterLeave"
+    >
+      <div v-show="fullScreen"
+           :src="currentSong.image"
+           class="normal-player"
+      >
+        <div class="background">
+          <img width="100%" height="100%" :src="currentSong.image">
+        </div>
+        <div class="top">
+          <div class="back" @click="onNormalClickBack">
+            <i class="icon-back"></i>
+          </div>
+          <h1 v-html="currentSong.name" class="title"></h1>
+          <h2 v-html="currentSong.singer" class="subtitle"></h2>
+        </div>
+        <div class="middle">
+          <div class="middle-l">
+            <div ref="cdWrapper" class="cd-wrapper">
+              <div class="cd">
+                <img :src="currentSong.image" class="image">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="operators">
+            <div class="icon i-left">
+              <i class="icon-sequence"></i>
+            </div>
+            <div class="icon i-left">
+              <i class="icon-prev"></i>
+            </div>
+            <div class="icon i-center">
+              <i class="icon-play"></i>
+            </div>
+            <div class="icon i-right">
+              <i class="icon-next"></i>
+            </div>
+            <div class="icon i-right">
+              <i class="icon icon-not-favorite"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+    <transition name="mini">
+      <div
+        v-show="!fullScreen"
+        @click="onMiniClickOpen"
+        class="mini-player"
+      >
+        <div class="icon">
+          <img width="40" height="40" :src="currentSong.image">
+        </div>
+        <div class="text">
+          <h2 v-html="currentSong.name" class="name"></h2>
+          <p v-html="currentSong.singer" class="desc"></p>
+        </div>
+        <div class="control"></div>
+        <div class="control">
+          <i class="icon-playlist"></i>
+        </div>
+      </div>
+    </transition>
+    <audio
+      ref="audio"
+      :src="currentSong.url">
+    </audio>
   </div>
 </template>
 
 <script>
-  import {mapGetters} from 'vuex'
+  import {mapGetters, mapMutations} from 'vuex'
+  import animations from 'create-keyframe-animation'
+  import {prefixStyle} from 'common/js/dom'
+
+  const transform = prefixStyle('transform')
 
   export default {
     name: 'Player',
     computed: {
       ...mapGetters([
-        'fullscreen',
-        'playlist'
+        'fullScreen',
+        'playList',
+        'currentSong'
       ])
+    },
+    methods: {
+      ...mapMutations({
+        setFullScreen: 'SET_FULL_SCREEN'
+      }),
+      onNormalClickBack () {
+        this.setFullScreen(false)
+      },
+      onMiniClickOpen () {
+        this.setFullScreen(true)
+      },
+      onEnter (el, done) {
+        const {x, y, scale} = this._getPosAndScale()
+
+        let animation = {
+          0: {
+            transform: `translate3d(${x}px,${y}px,0) scale(${scale})`
+          },
+          60: {
+            transform: `translate3d(0,0,0) scale(1.1)`
+          },
+          100: {
+            transform: `translate3d(0,0,0) scale(1)`
+          }
+        }
+
+        animations.registerAnimation({
+          name: 'move',
+          animation,
+          presets: {
+            duration: 500,
+            easing: 'linear'
+          }
+        })
+
+        animations.runAnimation(this.$refs.cdWrapper, 'move', done)
+      },
+      onAfterEnter () {
+        animations.unregisterAnimation('move')
+        this.$refs.cdWrapper.style.animation = ''
+      },
+      onLeave (el, done) {
+        this.$refs.cdWrapper.style.transition = 'all 0.4s'
+        const {x, y, scale} = this._getPosAndScale()
+        this.$refs.cdWrapper.style[transform] = `translate3d(${x}px,${y}px,0) scale(${scale})`
+        this.$refs.cdWrapper.addEventListener('transitionend', done)
+      },
+      onAfterLeave () {
+        this.$refs.cdWrapper.style.transition = ''
+        this.$refs.cdWrapper.style[transform] = ''
+      },
+      _getPosAndScale () {
+        const targetWidth = 40
+        const paddingLeft = 40
+        const paddingBottom = 30
+        const paddingTop = 80
+        const cdWidth = window.innerWidth * 0.8
+        const scale = targetWidth / cdWidth
+        const x = -(window.innerWidth / 2 - paddingLeft)
+        const y = window.innerHeight - paddingTop - cdWidth / 2 - paddingBottom
+        return {
+          x,
+          y,
+          scale
+        }
+      }
+    },
+    watch: {
+      currentSong () {
+        this.$nextTick(() => {
+          this.$refs.audio.play()
+        })
+      }
     }
   }
 </script>

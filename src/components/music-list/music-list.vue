@@ -31,7 +31,10 @@
       class="list"
     >
       <div class="song-list-wrapper">
-        <song-list :songs="songs"/>
+        <song-list
+          @songClick="onSongClick"
+          :songs="songs"
+        />
       </div>
       <div v-show="!songs.length" class="loading-container">
         <base-loading/>
@@ -45,6 +48,7 @@
   import BaseScroll from 'base/scroll/scroll'
   import BaseLoading from 'base/loading/loading'
   import {prefixStyle} from 'common/js/dom'
+  import {mapActions} from 'vuex'
 
   const RESERVED_HEIGHT = 40
   //自动添加prefix
@@ -117,7 +121,17 @@
       },
       onBackClick () {
         this.$router.back()
-      }
+      },
+      onSongClick (song, index) {
+        console.log(index)
+        this.clickSongPlay({
+          list: this.songs,
+          index: index
+        })
+      },
+      ...mapActions([
+        'clickSongPlay'
+      ])
     },
     components: {
       BaseLoading,
