@@ -30,6 +30,13 @@
           </div>
         </div>
         <div class="bottom">
+          <div class="progress-wrapper">
+            <span class="time time-l">{{_timeFormat(currentTime)}}</span>
+            <div class="progress-bar-wrapper">
+              <progress-bar :percent="percent"/>
+            </div>
+            <span class="time time-r">{{_timeFormat(currentSong.duration)}}</span>
+          </div>
           <div class="operators">
             <div class="icon i-left">
               <i class="icon-sequence"></i>
@@ -82,6 +89,7 @@
       ref="audio"
       @canplay="onReady"
       @error="onError"
+      @timeupdate="onTimeUpdate"
       :src="currentSong.url">
     </audio>
   </div>
@@ -91,6 +99,7 @@
   import {mapGetters, mapMutations} from 'vuex'
   import animations from 'create-keyframe-animation'
   import {prefixStyle} from 'common/js/dom'
+  import ProgressBar from 'base/progress-bar/progress-bar'
 
   const transform = prefixStyle('transform')
 
@@ -98,10 +107,14 @@
     name: 'Player',
     data () {
       return {
-        songReady: false
+        songReady: false,
+        currentTime: 0
       }
     },
     computed: {
+      percent () {
+        return this.currentTime / this.currentSong.duration
+      },
       btnDisable () {
         return this.songReady ? '' : 'disable'
       },
@@ -128,11 +141,28 @@
         setPlayingState: 'SET_PLAYING_STATE',
         setCurrentIndex: 'SET_CURRENTINDEX'
       }),
+      onTimeUpdate (e) {
+        this.currentTime = e.target.currentTime
+      },
+      _timeFormat (interval) {
+        interval = Math.floor(interval)
+        const minute = Math.floor(interval / 60)
+        const second = interval % 60
+        return `${this._padLeft(minute)}:${this._padLeft(second)}`
+      },
+      _padLeft (num, n = 2) {
+        let len = num.toString().length
+        while (len < 2) {
+          num = '0' + num
+          len++
+        }
+        return num
+      },
       onReady () {
         this.songReady = true
       },
       onError () {
-        this.songReady = true
+        this.songReady = false
       },
       onClickPrev () {
         if (!this.songReady) {
@@ -239,6 +269,9 @@
           newPlaying ? audio.play() : audio.pause()
         })
       }
+    },
+    components: {
+      ProgressBar
     }
   }
 </script>
@@ -381,11 +414,11 @@
           align-items: center
           width: 80%
           margin: 0 auto
-          padding: 10px 0
+          padding: 20px 0
           .time
             color: $color-text
             font-size: $font-size-small
-            flex: 0 0 30px
+            flex: 0 0 35px
             line-height: 30px
             width: 30px
             &.time-l

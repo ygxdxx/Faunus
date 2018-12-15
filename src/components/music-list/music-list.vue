@@ -98,7 +98,7 @@
           blur = Math.min(20 * percent, 20)
           this.$refs.filter.style[BACKDROP] = `blur(${blur}px)`
         }
-
+        
         if (currentY < this.maxScrollDistance) {
           //超过最大可滚动的距离
           bgImageEle.style.height = `${RESERVED_HEIGHT}px`
