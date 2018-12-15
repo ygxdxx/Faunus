@@ -23,7 +23,7 @@
         <div class="middle">
           <div class="middle-l">
             <div ref="cdWrapper" class="cd-wrapper">
-              <div class="cd">
+              <div class="cd" :class="cdRotate">
                 <img :src="currentSong.image" class="image">
               </div>
             </div>
@@ -34,13 +34,18 @@
             <div class="icon i-left">
               <i class="icon-sequence"></i>
             </div>
-            <div class="icon i-left">
+            <div @click="onClickPrev"
+                 :class="btnDisable"
+                 class="icon i-left">
               <i class="icon-prev"></i>
             </div>
-            <div class="icon i-center">
-              <i class="icon-play"></i>
+            <div @click="onTogglePlay"
+                 class="icon i-center">
+              <i :class="playIcon"></i>
             </div>
-            <div class="icon i-right">
+            <div @click="onClickNext"
+                 :class="btnDisable"
+                 class="icon i-right">
               <i class="icon-next"></i>
             </div>
             <div class="icon i-right">
@@ -51,19 +56,23 @@
       </div>
     </transition>
     <transition name="mini">
-      <div
-        v-show="!fullScreen"
-        @click="onMiniClickOpen"
-        class="mini-player"
+      <div v-show="!fullScreen"
+           @click="onMiniClickOpen"
+           class="mini-player"
       >
         <div class="icon">
-          <img width="40" height="40" :src="currentSong.image">
+          <img width="40"
+               height="40"
+               :class="cdRotate"
+               :src="currentSong.image">
         </div>
         <div class="text">
           <h2 v-html="currentSong.name" class="name"></h2>
           <p v-html="currentSong.singer" class="desc"></p>
         </div>
-        <div class="control"></div>
+        <div @click.stop="onTogglePlay" class="control">
+          <i :class="miniPlayIcon"></i>
+        </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
@@ -71,6 +80,8 @@
     </transition>
     <audio
       ref="audio"
+      @canplay="onReady"
+      @error="onError"
       :src="currentSong.url">
     </audio>
   </div>
@@ -85,17 +96,72 @@
 
   export default {
     name: 'Player',
+    data () {
+      return {
+        songReady: false
+      }
+    },
     computed: {
+      btnDisable () {
+        return this.songReady ? '' : 'disable'
+      },
+      cdRotate () {
+        return this.playing ? 'play' : 'play pause'
+      },
+      playIcon () {
+        return this.playing ? 'icon-pause' : 'icon-play'
+      },
+      miniPlayIcon () {
+        return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+      },
       ...mapGetters([
         'fullScreen',
         'playList',
-        'currentSong'
+        'currentSong',
+        'currentIndex',
+        'playing'
       ])
     },
     methods: {
       ...mapMutations({
-        setFullScreen: 'SET_FULL_SCREEN'
+        setFullScreen: 'SET_FULL_SCREEN',
+        setPlayingState: 'SET_PLAYING_STATE',
+        setCurrentIndex: 'SET_CURRENTINDEX'
       }),
+      onReady () {
+        this.songReady = true
+      },
+      onError () {
+        this.songReady = true
+      },
+      onClickPrev () {
+        if (!this.songReady) {
+          return
+        }
+        let index = this.currentIndex - 1
+        if (index === -1) {
+          index = this.playList.length - 1
+        }
+        this.setCurrentIndex(index)
+        if (!this.playing) {
+          this.onTogglePlay()
+        }
+        this.songReady = false
+      },
+      onClickNext () {
+        if (!this.songReady) {
+          return
+        }
+        let index = this.currentIndex + 1
+        if (index === this.playList.length) {
+          index = 0
+        }
+        this.setCurrentIndex(index)
+        if (!this.playing) {
+          this.onTogglePlay()
+        }
+        this.songReady = false
+      },
       onNormalClickBack () {
         this.setFullScreen(false)
       },
@@ -121,7 +187,7 @@
           name: 'move',
           animation,
           presets: {
-            duration: 500,
+            duration: 1000,
             easing: 'linear'
           }
         })
@@ -141,6 +207,9 @@
       onAfterLeave () {
         this.$refs.cdWrapper.style.transition = ''
         this.$refs.cdWrapper.style[transform] = ''
+      },
+      onTogglePlay () {
+        this.setPlayingState(!this.playing)
       },
       _getPosAndScale () {
         const targetWidth = 40
@@ -162,6 +231,12 @@
       currentSong () {
         this.$nextTick(() => {
           this.$refs.audio.play()
+        })
+      },
+      playing (newPlaying) {
+        const audio = this.$refs.audio
+        this.$nextTick(() => {
+          newPlaying ? audio.play() : audio.pause()
         })
       }
     }
