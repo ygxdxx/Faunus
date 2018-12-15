@@ -33,7 +33,9 @@
           <div class="progress-wrapper">
             <span class="time time-l">{{_timeFormat(currentTime)}}</span>
             <div class="progress-bar-wrapper">
-              <progress-bar :percent="percent"/>
+              <progress-bar :percent="percent"
+                            @percentChange="onPercentChange"
+              />
             </div>
             <span class="time time-r">{{_timeFormat(currentSong.duration)}}</span>
           </div>
@@ -141,6 +143,12 @@
         setPlayingState: 'SET_PLAYING_STATE',
         setCurrentIndex: 'SET_CURRENTINDEX'
       }),
+      onPercentChange (newPercent) {
+        this.$refs.audio.currentTime = this.currentSong.duration* newPercent
+        if(!this.playing){
+          this.onTogglePlay()
+        }
+      },
       onTimeUpdate (e) {
         this.currentTime = e.target.currentTime
       },

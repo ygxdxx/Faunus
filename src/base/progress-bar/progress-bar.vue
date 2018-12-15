@@ -3,7 +3,11 @@
     <div class="bar-inner">
       <div ref="progress" class="progress">
       </div>
-      <div ref="progressBtn" class="progress-btn-wrapper">
+      <div ref="progressBtn"
+           @touchstart.prevent="onProgressTouchStart"
+           @touchmove.prevent="onProgressTouchMove"
+           @touchend="onProgressTouchEnd"
+           class="progress-btn-wrapper">
         <div class="progress-btn"></div>
       </div>
     </div>
@@ -24,13 +28,43 @@
         default: 0
       }
     },
+    created () {
+      this.touch = {}
+    },
+    methods: {
+      onProgressTouchStart (e) {
+        this.touch.touchFlag = true
+        this.touch.startX = e.touches[0].pageX
+        this.touch.left = this.$refs.progress.clientWidth
+      },
+      onProgressTouchMove (e) {
+        if (!this.touch.touchFlag) {
+          return
+        }
+        const deltaX = e.touches[0].pageX - this.touch.startX
+        const offsetWidth = Math.min(this.$refs.progressBar.clientWidth - progressBarBtnWidth, Math.max(0, this.touch.left + deltaX))
+        this._setOffsetWidth(offsetWidth)
+      },
+      onProgressTouchEnd () {
+        this.touch.touchFlag = false
+        this._triggerPerecent()
+      },
+      _triggerPerecent () {
+        const barWidth = this.$refs.progressBar.clientWidth - progressBarBtnWidth
+        const percent = this.$refs.progress.clientWidth / barWidth
+        this.$emit('percentChange',percent)
+      },
+      _setOffsetWidth (offsetWidth) {
+        this.$refs.progress.style.width = `${offsetWidth}px` //带颜色进度条
+        this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px,0,0)` //圆点的位置
+      }
+    },
     watch: {
       percent (newPercent) {
-        if (newPercent >= 0) {
+        if (newPercent >= 0 && !this.touch.touchFlag) {
           const barWidth = this.$refs.progressBar.clientWidth - progressBarBtnWidth
           const offsetWidth = barWidth * newPercent
-          this.$refs.progress.style.width = `${offsetWidth}px`
-          this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+          this._setOffsetWidth(offsetWidth)
         }
       }
     }
