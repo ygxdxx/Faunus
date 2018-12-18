@@ -14,7 +14,11 @@
       class="bg-image"
     >
       <div class="play-wrapper">
-        <div v-show="songs.length > 0" ref="playBtn" class="play">
+        <div v-show="songs.length > 0"
+             ref="playBtn"
+             @click="onRandomClick"
+             class="play"
+        >
           <i class="icon-play"></i>
           <span class="text">随机播放全部</span>
         </div>
@@ -123,13 +127,19 @@
         this.$router.back()
       },
       onSongClick (song, index) {
-        this.clickSongPlay({
+        this.clickOneSongPlay({
           list: this.songs,
           index: index
         })
       },
+      onRandomClick () {
+        this.clickRandomSongPlay({
+          list:this.songs
+        })
+      },
       ...mapActions([
-        'clickSongPlay'
+        'clickOneSongPlay',
+        'clickRandomSongPlay'
       ])
     },
     components: {

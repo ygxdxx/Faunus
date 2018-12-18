@@ -7,7 +7,7 @@ const mutations = {
   [types.SET_PLAYING_STATE] (state, flag) {
     state.playing = flag
   },
-  [types.SET_FULL_SCREEN] (state, flag) {
+  [types.SET_FULLSCREEN] (state, flag) {
     state.fullScreen = flag
   },
   [types.SET_PLAYLIST] (state, list) {
@@ -19,7 +19,7 @@ const mutations = {
   [types.SET_PLAYMODE] (state, mode) {
     state.mode = mode
   },
-  [types.SET_CURRENTINDEX] (state, index) {
+  [types.SET_CURRENT_INDEX] (state, index) {
     state.currentIndex = index
   }
 }

@@ -40,10 +40,10 @@
             <span class="time time-r">{{_timeFormat(currentSong.duration)}}</span>
           </div>
           <div class="operators">
-            <div class="icon i-left">
-              <i class="icon-sequence"></i>
+            <div @click="onModeChange" class="icon i-left">
+              <i :class="iconMode"></i>
             </div>
-            <div @click="onClickPrev"
+            <div @click="onSongPrev"
                  :class="btnDisable"
                  class="icon i-left">
               <i class="icon-prev"></i>
@@ -52,7 +52,7 @@
                  class="icon i-center">
               <i :class="playIcon"></i>
             </div>
-            <div @click="onClickNext"
+            <div @click="onSongNext"
                  :class="btnDisable"
                  class="icon i-right">
               <i class="icon-next"></i>
@@ -94,6 +94,7 @@
       @canplay="onReady"
       @error="onError"
       @timeupdate="onTimeUpdate"
+      @ended="onSongEnd"
       :src="currentSong.url">
     </audio>
   </div>
@@ -105,6 +106,8 @@
   import {prefixStyle} from 'common/js/dom'
   import ProgressBar from 'base/progress-bar/progress-bar'
   import ProgressCircle from 'base/progress-circle/progress-circle'
+  import {playMode} from 'common/js/config'
+  import {shuffle} from 'common/js/until'
 
   const transform = prefixStyle('transform')
 
@@ -132,19 +135,26 @@
       miniPlayIcon () {
         return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
       },
+      iconMode () {
+        return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
+      },
       ...mapGetters([
         'fullScreen',
         'playList',
         'currentSong',
         'currentIndex',
-        'playing'
+        'playing',
+        'mode',
+        'sequenceList'
       ])
     },
     methods: {
       ...mapMutations({
-        setFullScreen: 'SET_FULL_SCREEN',
+        setFullScreen: 'SET_FULLSCREEN',
         setPlayingState: 'SET_PLAYING_STATE',
-        setCurrentIndex: 'SET_CURRENTINDEX'
+        setCurrentIndex: 'SET_CURRENT_INDEX',
+        setPlayMode: 'SET_PLAYMODE',
+        setPlayList: 'SET_PLAYLIST'
       }),
       onPercentChange (newPercent) {
         this.$refs.audio.currentTime = this.currentSong.duration * newPercent
@@ -175,7 +185,18 @@
       onError () {
         this.songReady = false
       },
-      onClickPrev () {
+      onSongEnd () {
+        if (this.mode === playMode.loop) {
+          this.loop()
+        } else {
+          this.onSongNext()
+        }
+      },
+      loop () {
+        this.$refs.audio.currentTime = 0
+        this.$refs.audio.play()
+      },
+      onSongPrev () {
         if (!this.songReady) {
           return
         }
@@ -189,7 +210,7 @@
         }
         this.songReady = false
       },
-      onClickNext () {
+      onSongNext () {
         if (!this.songReady) {
           return
         }
@@ -266,10 +287,31 @@
           y,
           scale
         }
+      },
+      onModeChange () {
+        const currentMode = (this.mode + 1) % 3
+        this.setPlayMode(currentMode)
+        let list = null
+        if (currentMode === playMode.random) {
+          list = shuffle(this.sequenceList)
+        } else {
+          list = this.sequenceList
+        }
+        this._resetCurrentIndex(list)
+        this.setPlayList(list)
+      },
+      _resetCurrentIndex (list) {
+        let index = list.findIndex((item) => {
+          return item.id === this.currentSong.id
+        })
+        this.setCurrentIndex(index)
       }
     },
     watch: {
-      currentSong () {
+      currentSong (newSong, oldSong) {
+        if (newSong.id === oldSong.id) {
+          return
+        }
         this.$nextTick(() => {
           this.$refs.audio.play()
         })

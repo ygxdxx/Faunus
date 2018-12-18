@@ -1,6 +1,6 @@
 <template>
   <div ref="progressBar" class="progress-bar">
-    <div class="bar-inner">
+    <div class="bar-inner" @click="onProgressClick">
       <div ref="progress" class="progress">
       </div>
       <div ref="progressBtn"
@@ -49,10 +49,16 @@
         this.touch.touchFlag = false
         this._triggerPerecent()
       },
+      onProgressClick (e) {
+        const rect = this.$refs.progressBar.getBoundingClientRect()
+        const offsetWidth = e.pageX - rect.left
+        this._setOffsetWidth(offsetWidth)
+        this._triggerPerecent()
+      },
       _triggerPerecent () {
         const barWidth = this.$refs.progressBar.clientWidth - progressBarBtnWidth
         const percent = this.$refs.progress.clientWidth / barWidth
-        this.$emit('percentChange',percent)
+        this.$emit('percentChange', percent)
       },
       _setOffsetWidth (offsetWidth) {
         this.$refs.progress.style.width = `${offsetWidth}px` //带颜色进度条
