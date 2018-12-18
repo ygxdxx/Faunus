@@ -80,7 +80,9 @@
           <p v-html="currentSong.singer" class="desc"></p>
         </div>
         <div @click.stop="onTogglePlay" class="control">
-          <i :class="miniPlayIcon"></i>
+          <progress-circle :radius="32" :percent="percent">
+            <i :class="miniPlayIcon" class="icon-mini"></i>
+          </progress-circle>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
@@ -102,6 +104,7 @@
   import animations from 'create-keyframe-animation'
   import {prefixStyle} from 'common/js/dom'
   import ProgressBar from 'base/progress-bar/progress-bar'
+  import ProgressCircle from 'base/progress-circle/progress-circle'
 
   const transform = prefixStyle('transform')
 
@@ -144,8 +147,8 @@
         setCurrentIndex: 'SET_CURRENTINDEX'
       }),
       onPercentChange (newPercent) {
-        this.$refs.audio.currentTime = this.currentSong.duration* newPercent
-        if(!this.playing){
+        this.$refs.audio.currentTime = this.currentSong.duration * newPercent
+        if (!this.playing) {
           this.onTogglePlay()
         }
       },
@@ -160,7 +163,7 @@
       },
       _padLeft (num, n = 2) {
         let len = num.toString().length
-        while (len < 2) {
+        while (len < n) {
           num = '0' + num
           len++
         }
@@ -279,7 +282,8 @@
       }
     },
     components: {
-      ProgressBar
+      ProgressBar,
+      ProgressCircle
     }
   }
 </script>
@@ -518,4 +522,10 @@
           position: absolute
           left: 0
           top: 0
+
+  @keyframes rotate
+    0%
+      transform rotate(0)
+    100%
+      transform rotate(360deg)
 </style>
