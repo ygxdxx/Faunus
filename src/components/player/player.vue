@@ -20,8 +20,12 @@
           <h1 v-html="currentSong.name" class="title"></h1>
           <h2 v-html="currentSong.singer" class="subtitle"></h2>
         </div>
-        <div class="middle">
-          <div class="middle-l">
+        <div @touchstart.prevent="onMiddleTouchStart"
+             @touchmove.prevent="onMiddleTouchMove"
+             @touchend="onMiddleTouchEnd"
+             class="middle"
+        >
+          <div ref="middleL" class="middle-l">
             <div ref="cdWrapper" class="cd-wrapper">
               <div class="cd" :class="cdRotate">
                 <img :src="currentSong.image" class="image">
@@ -46,6 +50,10 @@
           </base-scroll>
         </div>
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span :class="{'active':currentShow === 'cd'}" class="dot"></span>
+            <span :class="{'active':currentShow === 'lyric'}" class="dot"></span>
+          </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{_timeFormat(currentTime)}}</span>
             <div class="progress-bar-wrapper">
@@ -128,15 +136,21 @@
   import BaseScroll from 'base/scroll/scroll'
 
   const transform = prefixStyle('transform')
+  const transitionDuration = prefixStyle('transitionDuration')
+  const durationTime = 300
 
   export default {
     name: 'Player',
+    created () {
+      this.touch = {}
+    },
     data () {
       return {
         songReady: false,
         currentTime: 0,
         currentLyric: null,
-        currentLineNum: 0
+        currentLineNum: 0,
+        currentShow: 'cd'
       }
     },
     computed: {
@@ -344,6 +358,62 @@
         } else {
           this.$refs.lyricList.scrollTo(0, 0, 1000)
         }
+      },
+      onMiddleTouchStart (e) {
+        this.touch.touchFlag = true
+        const touch = e.touches[0]
+        this.touch.startX = touch.pageX
+        this.touch.startY = touch.pageY
+      },
+      onMiddleTouchMove (e) {
+        if (!this.touch.touchFlag) {
+          return
+        }
+        const touch = e.touches[0]
+        const deltaX = touch.pageX - this.touch.startX
+        const deltaY = touch.pageY - this.touch.startY
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          return
+        }
+        const initialLeft = this.currentShow === 'cd' ? 0 : -window.innerWidth
+        const offset = Math.min(0, Math.max(-window.innerWidth, deltaX + initialLeft))
+        this.touch.movePercent = Math.abs(offset / window.innerWidth)
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offset}px,0,0)`
+        this.$refs.lyricList.$el.style[transitionDuration] = 0
+        this.$refs.middleL.style.opacity = 1 - this.touch.movePercent
+        this.$refs.middleL.style[transitionDuration] = 0
+      },
+      onMiddleTouchEnd () {
+        this.touch.touchFlag = false
+        let offset = null
+        let opacity
+        //从右向左滑动
+        if (this.currentShow === 'cd') {
+          if (this.touch.movePercent > 0.1) {
+            offset = -window.innerWidth
+            this.currentShow = 'lyric'
+            opacity = 0
+          } else {
+            offset = 0
+            opacity = 1
+          }
+        } else {
+          //从左向右滑动
+          if (this.touch.movePercent < 0.9) {
+            offset = 0
+            this.currentShow = 'cd'
+            opacity = 1
+          } else {
+            offset = -window.innerWidth
+            opacity = 0
+          }
+        }
+        this.$refs.lyricList.$el.style[transform] = `translate3d(${offset}px,0,0)`
+        //动画效果
+        this.$refs.lyricList.$el.style[transitionDuration] = `${durationTime}ms`
+        //CD是否出现
+        this.$refs.middleL.style.opacity = opacity
+        this.$refs.middleL.style[transitionDuration] = `${durationTime}ms`
       }
     },
     watch: {
