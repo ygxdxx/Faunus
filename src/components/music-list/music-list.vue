@@ -53,6 +53,7 @@
   import BaseLoading from 'base/loading/loading'
   import {prefixStyle} from 'common/js/dom'
   import {mapActions} from 'vuex'
+  import {playListMixin} from 'common/js/mixin'
 
   const RESERVED_HEIGHT = 40
   //自动添加prefix
@@ -60,6 +61,7 @@
   const BACKDROP = prefixStyle('backdrop-filter')
 
   export default {
+    mixins: [playListMixin],
     name: 'MusicList',
     props: {
       bgImage: {
@@ -120,6 +122,11 @@
       }
     },
     methods: {
+      handlePlayList (playList) {
+        const bottom = playList.length > 0 ? '60px' : ''
+        this.$refs.list.$el.style.bottom = bottom
+        this.$refs.list.refresh()
+      },
       onScroll (posObj) {
         this.scrollY = posObj.y
       },
@@ -134,7 +141,7 @@
       },
       onRandomClick () {
         this.clickRandomSongPlay({
-          list:this.songs
+          list: this.songs
         })
       },
       ...mapActions([

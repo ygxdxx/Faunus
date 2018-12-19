@@ -31,6 +31,9 @@
                 <img :src="currentSong.image" class="image">
               </div>
             </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric">{{playingLyric}}</div>
+            </div>
           </div>
           <base-scroll ref="lyricList"
                        :data="currentLyric && currentLyric.lines"
@@ -150,7 +153,8 @@
         currentTime: 0,
         currentLyric: null,
         currentLineNum: 0,
-        currentShow: 'cd'
+        currentShow: 'cd',
+        playingLyric: ''
       }
     },
     computed: {
@@ -191,9 +195,14 @@
         setPlayList: 'SET_PLAYLIST'
       }),
       onPercentChange (newPercent) {
-        this.$refs.audio.currentTime = this.currentSong.duration * newPercent
+        const currentTime = this.currentSong.duration * newPercent
+        this.$refs.audio.currentTime = currentTime
         if (!this.playing) {
           this.onTogglePlay()
+        }
+        if (this.currentLyric) {
+          //歌词与滚动条同步
+          this.currentLyric.seek(currentTime * 1000)
         }
       },
       onTimeUpdate (e) {
@@ -229,18 +238,26 @@
       loop () {
         this.$refs.audio.currentTime = 0
         this.$refs.audio.play()
+        if (this.currentLyric) {
+          //单曲循环的时候，歌曲播放结束，歌词回到顶部
+          this.currentLyric.seek(0)
+        }
       },
       onSongPrev () {
         if (!this.songReady) {
           return
         }
-        let index = this.currentIndex - 1
-        if (index === -1) {
-          index = this.playList.length - 1
-        }
-        this.setCurrentIndex(index)
-        if (!this.playing) {
-          this.onTogglePlay()
+        if (this.playList.length === 1) {
+          this.loop()
+        } else {
+          let index = this.currentIndex - 1
+          if (index === -1) {
+            index = this.playList.length - 1
+          }
+          this.setCurrentIndex(index)
+          if (!this.playing) {
+            this.onTogglePlay()
+          }
         }
         this.songReady = false
       },
@@ -248,13 +265,18 @@
         if (!this.songReady) {
           return
         }
-        let index = this.currentIndex + 1
-        if (index === this.playList.length) {
-          index = 0
-        }
-        this.setCurrentIndex(index)
-        if (!this.playing) {
-          this.onTogglePlay()
+        //边界情况处理
+        if (this.playList.length === 1) {
+          this.loop()
+        } else {
+          let index = this.currentIndex + 1
+          if (index === this.playList.length) {
+            index = 0
+          }
+          this.setCurrentIndex(index)
+          if (!this.playing) {
+            this.onTogglePlay()
+          }
         }
         this.songReady = false
       },
@@ -306,6 +328,10 @@
       },
       onTogglePlay () {
         this.setPlayingState(!this.playing)
+        if (this.currentLyric) {
+          //暂停的时候歌词也要暂停
+          this.currentLyric.togglePlay()
+        }
       },
       _getPosAndScale () {
         const targetWidth = 40
@@ -346,8 +372,11 @@
           if (this.playing) {
             this.currentLyric.play()
           }
-        }, (errMsg) => {
-          console.log(errMsg)
+        }).catch((err) => {
+          //错误情况进行清理
+          this.currentLyric = null
+          this.playingLyric = ''
+          this.currentLineNum = 0
         })
       },
       _handleLyricCallback ({lineNum, txt}) {
@@ -358,6 +387,7 @@
         } else {
           this.$refs.lyricList.scrollTo(0, 0, 1000)
         }
+        this.playingLyric = txt
       },
       onMiddleTouchStart (e) {
         this.touch.touchFlag = true
@@ -420,6 +450,9 @@
       currentSong (newSong, oldSong) {
         if (newSong.id === oldSong.id) {
           return
+        }
+        if (this.currentLyric) {
+          this.currentLyric.stop()
         }
         this.$nextTick(() => {
           this.$refs.audio.play()

@@ -1,8 +1,8 @@
 <template>
-  <div class="singer">
-    <base-listview
-      @select="selectSinger"
-      :data="singerList"
+  <div ref="singer" class="singer">
+    <base-listview ref="listview"
+                   @select="selectSinger"
+                   :data="singerList"
     />
     <transition name="slide">
       <router-view/>
@@ -16,16 +16,23 @@
   import SingerClz from 'common/js/singerClz'
   import BaseListview from 'base/listview/listview'
   import {mapMutations} from 'vuex'
+  import {playListMixin} from '../../common/js/mixin'
 
   const HOT_NAME = '热门'
   const HOT_SINGER_LEN = 10
 
   export default {
     name: 'Singer',
+    mixins: ['playListMixin'],
     created () {
       this._getSingerList()
     },
     methods: {
+      handlePlayList (playList) {
+        const bottom = playList.length > 0 ? '60px' : ''
+        this.$refs.singer.style = bottom
+        this.$refs.listview.refresh()
+      },
       selectSinger (singer) {
         this.$router.push({
           path: `/singer/${singer.id}`
@@ -34,7 +41,7 @@
         this.setSinger(singer)
       },
       _getSingerList () {
-        getSingerList().then((res) =>  {
+        getSingerList().then((res) => {
           if (res.code === ERR_OK) {
             this.singerList = this._rebuildSingerData(res.data.list)
           }
@@ -82,7 +89,7 @@
         return [...hotList, ...normList]
       },
       ...mapMutations({
-        setSinger:'SET_SINGER'
+        setSinger: 'SET_SINGER'
       })
     },
     data () {

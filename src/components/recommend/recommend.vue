@@ -1,10 +1,9 @@
 <template>
   <div class="recommend">
-    <base-scroll
-      ref="scroll"
-      :data="discList"
-      class="recommend-content"
-      v-if="discList.length"
+    <base-scroll ref="scroll"
+                 :data="discList"
+                 class="recommend-content"
+                 v-if="discList.length"
     >
       <div>
         <div class="slider-wrapper" v-if="sliders.length">
@@ -19,10 +18,9 @@
         <div class="recommend-list">
           <h1 class="list-title">热门歌曲推荐</h1>
           <ul>
-            <li
-              v-for="item of discList"
-              class="item"
-              :key="item.dissid"
+            <li v-for="item of discList"
+                class="item"
+                :key="item.dissid"
             >
               <div class="icon">
                 <img v-lazy="item.imgurl">
@@ -48,9 +46,11 @@
   import BaseScroll from 'base/scroll/scroll'
   import BaseSlider from 'base/slider/slider'
   import BaseLoading from 'base/loading/loading'
+  import {playListMixin} from 'common/js/mixin'
 
   export default {
     name: 'Recommend',
+    mixins: ['playListMixins'],
     created () {
       this._getRecommend()
       this._getDiscList()
@@ -62,6 +62,11 @@
       }
     },
     methods: {
+      handlePlayList (playList) {
+        const bottom = playList.length > 0 ? '100px' : ''
+        this.$refs.scroll.$el.style.bottom = bottom
+        this.$refs.scroll.refresh()
+      },
       _getRecommend () {
         getRecommend().then((res) => {
           if (res.code === ERR_OK) {

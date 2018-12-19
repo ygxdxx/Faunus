@@ -1,62 +1,54 @@
 <template>
-  <base-scroll
-    ref="scroller"
-    :data="data"
-    v-if="data.length"
-    :listenScroll="listenScroll"
-    :probeType="probeType"
-    @scroll="onScroll"
-    class="listview"
+  <base-scroll ref="scroller"
+               :data="data"
+               v-if="data.length"
+               :listenScroll="listenScroll"
+               :probeType="probeType"
+               @scroll="onScroll"
+               class="listview"
   >
     <ul>
-      <li
-        v-for="outerItem of data"
-        :key="outerItem.title"
-        ref="outerItem"
-        class="list-group">
+      <li v-for="outerItem of data"
+          :key="outerItem.title"
+          ref="outerItem"
+          class="list-group">
         <h2 class="list-group-title">{{outerItem.title}}</h2>
         <ul>
-          <li
-            v-for="innerItem of outerItem.items"
-            @click="selectItem(innerItem)"
-            :key="innerItem.id"
-            class="list-group-item"
+          <li v-for="innerItem of outerItem.items"
+              @click="selectItem(innerItem)"
+              :key="innerItem.id"
+              class="list-group-item"
           >
-            <img
-              v-lazy="innerItem.avatar"
-              class="avatar"
+            <img v-lazy="innerItem.avatar"
+                 class="avatar"
             >
-            <p
-              v-html="innerItem.name"
-              class="name"
+            <p v-html="innerItem.name"
+               class="name"
             >
             </p>
           </li>
         </ul>
       </li>
     </ul>
-    <div
-      @touchstart="onAlphabetTouchStart"
-      @touchmove.stop.prevent="onAlphabetTouchMove"
-      @touchend="onAlphabetTouchEnd"
-      class="list-shortcut"
+    <div @touchstart="onAlphabetTouchStart"
+         @touchmove.stop.prevent="onAlphabetTouchMove"
+         @touchend="onAlphabetTouchEnd"
+         class="list-shortcut"
     >
       <ul>
-        <li
-          v-for="(letter,index) in buildLetterList"
-          :key="letter"
-          :data-index="index"
-          :class="{'current': currentIndex === index}"
-          class="item"
+        <li v-for="(letter,index) in buildLetterList"
+            :key="letter"
+            :data-index="index"
+            :class="{'current': currentIndex === index}"
+            class="item"
         >
           {{letter}}
         </li>
       </ul>
     </div>
-    <div
-      ref="fixed"
-      v-show="fixedTitle"
-      class="list-fixed"
+    <div ref="fixed"
+         v-show="fixedTitle"
+         class="list-fixed"
     >
       <h1 class="fixed-title">{{fixedTitle}}</h1>
     </div>
@@ -102,6 +94,9 @@
       }
     },
     methods: {
+      refresh () {
+        this.$refs.scroller.refresh()
+      },
       onAlphabetTouchStart (e) {
         this.touchStatus = true
         let anchorIndex = processAttr(e.target, 'data-index')
@@ -134,7 +129,7 @@
         this.scrollY = posObj.y
       },
       selectItem (singer) {
-        this.$emit('select',singer)
+        this.$emit('select', singer)
       },
       _scrollToElement (index) {
         this.scrollY = -this.listHeight[index]
