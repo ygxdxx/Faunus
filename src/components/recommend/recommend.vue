@@ -19,8 +19,9 @@
           <h1 class="list-title">热门歌曲推荐</h1>
           <ul>
             <li v-for="item of discList"
-                class="item"
                 :key="item.dissid"
+                @click="onClickItem(item)"
+                class="item"
             >
               <div class="icon">
                 <img v-lazy="item.imgurl">
@@ -37,6 +38,7 @@
         <base-loading v-show="!discList.length"/>
       </div>
     </base-scroll>
+    <router-view/>
   </div>
 </template>
 
@@ -47,6 +49,7 @@
   import BaseSlider from 'base/slider/slider'
   import BaseLoading from 'base/loading/loading'
   import {playListMixin} from 'common/js/mixin'
+  import {mapMutations} from 'vuex'
 
   export default {
     name: 'Recommend',
@@ -78,7 +81,6 @@
       _getDiscList () {
         getDiscList().then((res) => {
           if (res.code === ERR_OK) {
-            console.log(res.data)
             this.discList = res.data.list
           }
         })
@@ -88,7 +90,16 @@
           this.$refs.scroll.refresh()
           this.hasLoaded = true
         }
-      }
+      },
+      onClickItem (item) {
+        this.$router.push({
+          path: `/recommend/${item.dissid}`
+        })
+        this.setDisc(item)
+      },
+      ...mapMutations({
+        setDisc:'SET_DISC'
+      })
     },
     components: {
       BaseSlider,

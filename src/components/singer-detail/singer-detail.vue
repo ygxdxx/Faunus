@@ -38,6 +38,7 @@
     },
     methods: {
       _getSingerDetail () {
+        //刷新的时候没有singer.id，因为singer并没有将某一个singer对象传给这个页面
         if (!this.singer.id) {
           this.$router.push('/singer')
           return
