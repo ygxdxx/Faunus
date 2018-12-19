@@ -28,6 +28,22 @@
               </div>
             </div>
           </div>
+          <base-scroll ref="lyricList"
+                       :data="currentLyric && currentLyric.lines"
+                       class="middle-r"
+          >
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p ref="lyricLine"
+                   class="text"
+                   :class="{'current': currentLineNum === index}"
+                   v-for="(line,index) in currentLyric.lines"
+                >
+                  {{line.txt}}
+                </p>
+              </div>
+            </div>
+          </base-scroll>
         </div>
         <div class="bottom">
           <div class="progress-wrapper">
@@ -108,6 +124,8 @@
   import ProgressCircle from 'base/progress-circle/progress-circle'
   import {playMode} from 'common/js/config'
   import {shuffle} from 'common/js/until'
+  import LyricParser from 'lyric-parser'
+  import BaseScroll from 'base/scroll/scroll'
 
   const transform = prefixStyle('transform')
 
@@ -116,7 +134,9 @@
     data () {
       return {
         songReady: false,
-        currentTime: 0
+        currentTime: 0,
+        currentLyric: null,
+        currentLineNum: 0
       }
     },
     computed: {
@@ -305,6 +325,25 @@
           return item.id === this.currentSong.id
         })
         this.setCurrentIndex(index)
+      },
+      getCurrentLyric () {
+        this.currentSong.getLyric().then((lyric) => {
+          this.currentLyric = new LyricParser(lyric, this._handleLyricCallback)
+          if (this.playing) {
+            this.currentLyric.play()
+          }
+        }, (errMsg) => {
+          console.log(errMsg)
+        })
+      },
+      _handleLyricCallback ({lineNum, txt}) {
+        this.currentLineNum = lineNum
+        if (lineNum > 5) {
+          let lineEle = this.$refs.lyricLine[lineNum - 5]
+          this.$refs.lyricList.scrollToElement(lineEle)
+        } else {
+          this.$refs.lyricList.scrollTo(0, 0, 1000)
+        }
       }
     },
     watch: {
@@ -314,6 +353,7 @@
         }
         this.$nextTick(() => {
           this.$refs.audio.play()
+          this.getCurrentLyric()
         })
       },
       playing (newPlaying) {
@@ -325,7 +365,8 @@
     },
     components: {
       ProgressBar,
-      ProgressCircle
+      ProgressCircle,
+      BaseScroll
     }
   }
 </script>
