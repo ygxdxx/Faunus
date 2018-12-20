@@ -3,6 +3,7 @@
     <music-list :title="title"
                 :bgImage="bgImage"
                 :songs="songs"
+                :rank="true"
     />
   </transition>
 </template>

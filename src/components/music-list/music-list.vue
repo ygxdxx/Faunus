@@ -35,9 +35,9 @@
       class="list"
     >
       <div class="song-list-wrapper">
-        <song-list
-          @songClick="onSongClick"
-          :songs="songs"
+        <song-list :rank="rank"
+                   @songClick="onSongClick"
+                   :songs="songs"
         />
       </div>
       <div v-show="!songs.length" class="loading-container">
@@ -75,6 +75,10 @@
       title: {
         type: String,
         default: ''
+      },
+      rank: {
+        type: Boolean,
+        default: false
       }
     },
     computed: {
