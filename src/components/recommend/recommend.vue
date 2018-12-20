@@ -20,7 +20,7 @@
           <ul>
             <li v-for="item of discList"
                 :key="item.dissid"
-                @click="onClickItem(item)"
+                @click="onClickDiscItem(item)"
                 class="item"
             >
               <div class="icon">
@@ -91,7 +91,7 @@
           this.hasLoaded = true
         }
       },
-      onClickItem (item) {
+      onClickDiscItem (item) {
         this.$router.push({
           path: `/recommend/${item.dissid}`
         })
