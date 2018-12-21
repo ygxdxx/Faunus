@@ -1,28 +1,32 @@
 <template>
   <div class="search">
     <div class="search-box-wrapper">
-      <search-box ref="searchBox"/>
+      <search-box ref="searchBox" @query="onEmitQuery"/>
     </div>
-    <div class="shortcut-wrapper">
+    <div v-if="!query" class="shortcut-wrapper">
       <div class="shortcut">
         <div class="hot-key">
           <h1 class="title">热门搜索</h1>
           <ul>
             <li v-for="item of hotKey"
-                @click="onClickHotKey(item)"
+                @click="onHotKeyClick(item)"
                 class="item"
             >
-              <span>{{item.k}}</span>
+              <span v-html="item.k"></span>
             </li>
           </ul>
         </div>
       </div>
+    </div>
+    <div v-if="query" class="search-result">
+      <search-suggest :query="query"/>
     </div>
   </div>
 </template>
 
 <script>
   import SearchBox from 'base/search-box/search-box'
+  import SearchSuggest from 'components/search-suggest/search-suggest'
   import {getHotKeys} from 'api/search'
   import {ERR_OK} from 'api/config'
 
@@ -33,11 +37,13 @@
     },
     data () {
       return {
-        hotKey: []
+        hotKey: [],
+        query:''
       }
     },
     components: {
-      SearchBox
+      SearchBox,
+      SearchSuggest
     },
     methods: {
       _getHotKeys () {
@@ -47,8 +53,11 @@
           }
         })
       },
-      onClickHotKey(item){
+      onHotKeyClick (item) {
         this.$refs.searchBox.setQuery(item.k)
+      },
+      onEmitQuery(query){
+        this.query = query
       }
     }
   }
@@ -65,6 +74,7 @@
       top: 178px
       bottom: 0
       width: 100%
+      z-index 33
       .shortcut
         height: 100%
         overflow: hidden
