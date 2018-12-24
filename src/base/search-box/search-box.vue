@@ -17,6 +17,7 @@
   export default {
     name: 'SearchBox',
     created () {
+      //为什么watch事件不单独列出而是放在created中？
       this.$watch('query', (queryVal) => {
         this.$emit('query', queryVal)
       })

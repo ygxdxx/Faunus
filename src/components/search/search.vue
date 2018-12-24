@@ -57,6 +57,7 @@
         this.$refs.searchBox.setQuery(item.k)
       },
       onEmitQuery(query){
+        console.log('onEmitQuery')
         this.query = query
       }
     }

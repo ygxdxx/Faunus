@@ -1,5 +1,9 @@
 <template>
-  <div class="suggest">
+  <base-scroll :pullup="pullup"
+               :data="result"
+               @scrollPullup="onScrollPullup"
+               ref="scroller"
+               class="suggest">
     <ul class="suggest-list">
       <li v-for="item of result"
           class="suggest-item">
@@ -10,19 +14,27 @@
           <p v-html="getDisplayName(item)" class="text"></p>
         </div>
       </li>
+      <loading v-show="hasMore" title=""/>
     </ul>
-  </div>
+  </base-scroll>
 </template>
 
 <script>
   import {search} from 'api/search'
   import {ERR_OK} from 'api/config'
-  import {filterSinger} from 'common/js/songClz'
+  import {createSong} from 'common/js/songClz'
+  import BaseScroll from 'base/scroll/scroll'
+  import Loading from 'base/loading/loading'
 
   const TYPE_SINGER = 'singer'
+  const PERPAGE = 20
 
   export default {
-    name: 'SearchSuggesr',
+    name: 'SearchSuggest',
+    components: {
+      BaseScroll,
+      Loading
+    },
     props: {
       query: {
         type: String,
@@ -36,27 +48,57 @@
     data () {
       return {
         page: 1,
-        result: []
+        result: [],
+        pullup: true,
+        hasMore: true
       }
     },
     methods: {
       _searchKeyWord () {
-        search(this.query, 1, this.showSinger).then((res) => {
+        this.page = 1
+        this.$refs.scroller.scrollTo(0,0)
+        search(this.query, this.page, this.showSinger, PERPAGE).then((res) => {
           if (res.code === ERR_OK) {
             this.result = this._rebuildResult(res.data)
-            console.log(this.result)
+            this.checkMore(res.data)
           }
         })
+      },
+      onScrollPullup () {
+        if (!this.hasMore) {
+          return
+        }
+        this.page++
+        search(this.query, this.page, this.showSinger, PERPAGE).then((res) => {
+          if (res.code === ERR_OK) {
+            this.result = this.result.concat(this._rebuildResult(res.data))
+            this.checkMore(res.data)
+          }
+        })
+      },
+      checkMore (data) {
+        const song = data.song
+        if (!song.list.length || (song.curnum + song.curpage * PERPAGE) > song.totalnum) {
+          this.hasMore = false
+        }
       },
       _rebuildResult (data) {
         let ret = []
         if (data.zhida && data.zhida.singerid) {
-          //ES6 对象解构
           ret.push({...data.zhida, ...{type: TYPE_SINGER}})
         }
         if (data.song) {
-          ret = ret.concat(data.song.list)
+          ret = ret.concat(this._normalizeSongs(data.song.list))
         }
+        return ret
+      },
+      _normalizeSongs (list) {
+        let ret = []
+        list.forEach((musicData) => {
+          if (musicData.songid && musicData.albumid) {
+            ret.push(createSong(musicData))
+          }
+        })
         return ret
       },
       getIconCls (item) {
@@ -70,12 +112,13 @@
         if (item.type === TYPE_SINGER) {
           return item.singername
         } else {
-          return `${item.songname}-${filterSinger(item.singer)}`
+          return `${item.name}-${item.singer}`
         }
       }
     },
     watch: {
       query () {
+        console.log('suggest watch query')
         this._searchKeyWord()
       }
     }

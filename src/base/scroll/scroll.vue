@@ -25,6 +25,10 @@
       listenScroll: {
         type: Boolean,
         default: false
+      },
+      pullup: {
+        type: Boolean,
+        default: false
       }
     },
     methods: {
@@ -39,6 +43,13 @@
         if (this.listenScroll) {
           this.scroll.on('scroll', (posObj) => {
             this.$emit('scroll', posObj)
+          })
+        }
+        if (this.pullup) {
+          this.scroll.on('scrollEnd', () => {
+            if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+              this.$emit('scrollPullup')
+            }
           })
         }
       },
@@ -56,7 +67,8 @@
       },
       scrollToElement () {
         this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
-      }
+      },
+
     },
     watch: {
       data () {
