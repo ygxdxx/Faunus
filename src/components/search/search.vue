@@ -19,8 +19,13 @@
       </div>
     </div>
     <div v-if="query" class="search-result">
-      <search-suggest :query="query"/>
+      <search-suggest :query="query"
+                      @onBeforeScroll="blurInput"
+                      ref="suggest"/>
     </div>
+    <transition name="slide">
+      <router-view/>
+    </transition>
   </div>
 </template>
 
@@ -38,7 +43,7 @@
     data () {
       return {
         hotKey: [],
-        query:''
+        query: ''
       }
     },
     components: {
@@ -54,11 +59,14 @@
         })
       },
       onHotKeyClick (item) {
-        this.$refs.searchBox.setQuery(item.k)
+        this.$refs.searchBox.setQuery(item.k.trim())
       },
-      onEmitQuery(query){
-        console.log('onEmitQuery')
-        this.query = query
+      onEmitQuery (newVal) {
+        console.log('on emit')
+        this.query = newVal
+      },
+      blurInput () {
+        this.$refs.searchBox.blur()
       }
     }
   }
@@ -114,4 +122,8 @@
       width: 100%
       top: 178px
       bottom: 0
+  .slide-enter-active, .slider-leave-active
+    transition all 0.5s
+  .slide-enter, .slider-leave-to
+    transform translate3d(100%, 0, 0)
 </style>

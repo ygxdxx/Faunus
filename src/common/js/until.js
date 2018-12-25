@@ -1,5 +1,5 @@
 export function shuffle (array) {
-  let _arr = array.slice();
+  let _arr = array.slice()
   for (let i = 0, len = _arr.length; i < len; i++) {
     let j = getRandomInt(0, i)
     let t = _arr[i]
@@ -11,10 +11,22 @@ export function shuffle (array) {
 
 export function findIndex (list, song) {
   return list.findIndex((item) => {
-      return item.id === song.id
+    return item.id === song.id
   })
 }
 
 function getRandomInt (min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+export function debounce (func, delay) {
+  let timer
+  return function (...args) {
+    if (timer) {
+      clearTimeout(timer)
+    }
+    timer = setTimeout(() => {
+      func.apply(this, args)
+    }, delay)
+  }
 }

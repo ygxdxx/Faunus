@@ -37,15 +37,21 @@ export default new Router({
     }, {
       path: '/rank',
       component: Rank,
-      children:[
+      children: [
         {
-          path:':id',
-          component:RankDetail
+          path: ':id',
+          component: RankDetail
         }
       ]
     }, {
       path: '/search',
-      component: Search
+      component: Search,
+      children: [
+        {
+          path: ':id',
+          component: SingerDetail
+        }
+      ]
     }
   ]
 })

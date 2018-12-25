@@ -1,11 +1,14 @@
 <template>
   <base-scroll :pullup="pullup"
                :data="result"
+               :beforeScroll="beforeScroll"
                @scrollPullup="onScrollPullup"
+               @beforeScroll="onBeforeScroll"
                ref="scroller"
                class="suggest">
     <ul class="suggest-list">
       <li v-for="item of result"
+          @click="onSelectItem(item)"
           class="suggest-item">
         <div class="icon">
           <i :class="getIconCls(item)"></i>
@@ -14,8 +17,11 @@
           <p v-html="getDisplayName(item)" class="text"></p>
         </div>
       </li>
-      <loading v-show="hasMore" title=""/>
     </ul>
+    <loading v-show="hasMore" title=""/>
+    <div v-show="!hasMore && !result.length" class="no-result-wrapper">
+      <no-result title="暂无搜索结果"/>
+    </div>
   </base-scroll>
 </template>
 
@@ -25,6 +31,9 @@
   import {createSong} from 'common/js/songClz'
   import BaseScroll from 'base/scroll/scroll'
   import Loading from 'base/loading/loading'
+  import SingerClz from 'common/js/singerClz'
+  import NoResult from 'base/no-result/no-result'
+  import {mapMutations, mapActions} from 'vuex'
 
   const TYPE_SINGER = 'singer'
   const PERPAGE = 20
@@ -33,7 +42,8 @@
     name: 'SearchSuggest',
     components: {
       BaseScroll,
-      Loading
+      Loading,
+      NoResult
     },
     props: {
       query: {
@@ -50,13 +60,14 @@
         page: 1,
         result: [],
         pullup: true,
+        beforeScroll: true,
         hasMore: true
       }
     },
     methods: {
       _searchKeyWord () {
         this.page = 1
-        this.$refs.scroller.scrollTo(0,0)
+        this.$refs.scroller.scrollTo(0, 0)
         search(this.query, this.page, this.showSinger, PERPAGE).then((res) => {
           if (res.code === ERR_OK) {
             this.result = this._rebuildResult(res.data)
@@ -75,6 +86,20 @@
             this.checkMore(res.data)
           }
         })
+      },
+      onBeforeScroll () {
+        this.$emit('onBeforeScroll')
+      },
+      onSelectItem (item) {
+        if (item.type === TYPE_SINGER) {
+          const singer = new SingerClz(item.singermid, item.singername)
+          this.$router.push({
+            path: `/search/${singer.id}`
+          })
+          this.setSinger(singer)
+        } else {
+          this.insertSong(item)
+        }
       },
       checkMore (data) {
         const song = data.song
@@ -114,7 +139,13 @@
         } else {
           return `${item.name}-${item.singer}`
         }
-      }
+      },
+      ...mapMutations({
+        setSinger: 'SET_SINGER'
+      }),
+      ...mapActions([
+        'insertSong'
+      ])
     },
     watch: {
       query () {

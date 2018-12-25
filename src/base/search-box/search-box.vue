@@ -3,8 +3,9 @@
     <i class="icon-search"></i>
     <input v-model="query"
            :placeholder="placeholder"
+           ref="searchInput"
            class="box"
-    >
+    />
     <i v-show="query"
        @click="onDismissClick"
        class="icon-dismiss"
@@ -14,13 +15,15 @@
 </template>
 
 <script>
+  import {debounce} from 'common/js/until'
+
   export default {
     name: 'SearchBox',
     created () {
-      //为什么watch事件不单独列出而是放在created中？
-      this.$watch('query', (queryVal) => {
+      //TODO 为什么watch事件不单独列出而是放在created中？
+      this.$watch('query', debounce((queryVal) => {
         this.$emit('query', queryVal)
-      })
+      }, 200))
     },
     props: {
       placeholder: {
@@ -39,6 +42,9 @@
       },
       setQuery (val) {
         this.query = val
+      },
+      blur () {
+        this.$refs.searchInput.blur()
       }
     }
   }
