@@ -143,6 +143,10 @@
           return `${item.name}-${item.singer}`
         }
       },
+      //代理刷新方法
+      refresh () {
+        this.$refs.scroller.refresh()
+      },
       ...mapMutations({
         setSinger: 'SET_SINGER'
       }),

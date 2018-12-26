@@ -1,9 +1,12 @@
 <template>
   <div v-show="searches.length" class="search-list">
     <ul>
-      <li v-for="item of searches" class="search-item">
+      <li v-for="item of searches"
+          @click="onSelectHistory(item)"
+          class="search-item"
+      >
         <span class="text">{{item}}</span>
-        <span class="icon">
+        <span @click.stop="onDeleteHistory(item)" class="icon">
           <i class="icon-delete"></i>
         </span>
       </li>
@@ -18,6 +21,14 @@
       searches: {
         type: Array,
         default: []
+      }
+    },
+    methods: {
+      onSelectHistory(item){
+        this.$emit('selectHistory',item)
+      },
+      onDeleteHistory (item) {
+        this.$emit('deleteHistory', item)
       }
     }
   }
