@@ -4,12 +4,10 @@
                 @enter="onEnter"
                 @after-enter="onAfterEnter"
                 @leave="onLeave"
-                @afterLeave="onAfterLeave"
-    >
+                @afterLeave="onAfterLeave">
       <div v-show="fullScreen"
            :src="currentSong.image"
-           class="normal-player"
-      >
+           class="normal-player">
         <div class="background">
           <img width="100%" height="100%" :src="currentSong.image">
         </div>
@@ -23,8 +21,7 @@
         <div @touchstart.prevent="onMiddleTouchStart"
              @touchmove.prevent="onMiddleTouchMove"
              @touchend="onMiddleTouchEnd"
-             class="middle"
-        >
+             class="middle">
           <div ref="middleL" class="middle-l">
             <div ref="cdWrapper" class="cd-wrapper">
               <div class="cd" :class="cdRotate">
@@ -37,8 +34,7 @@
           </div>
           <base-scroll ref="lyricList"
                        :data="currentLyric && currentLyric.lines"
-                       class="middle-r"
-          >
+                       class="middle-r">
             <div class="lyric-wrapper">
               <div v-if="currentLyric">
                 <p ref="lyricLine"
@@ -111,11 +107,12 @@
             <i :class="miniPlayIcon" class="icon-mini"></i>
           </progress-circle>
         </div>
-        <div class="control">
+        <div @click.stop="onShowPlayList" class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <play-list ref="playlist"/>
     <audio
       ref="audio"
       @canplay="onReady"
@@ -137,6 +134,7 @@
   import {shuffle} from 'common/js/until'
   import LyricParser from 'lyric-parser'
   import BaseScroll from 'base/scroll/scroll'
+  import PlayList from 'components/playlist/playlist'
 
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
@@ -444,6 +442,9 @@
         //CD是否出现
         this.$refs.middleL.style.opacity = opacity
         this.$refs.middleL.style[transitionDuration] = `${durationTime}ms`
+      },
+      onShowPlayList(){
+        this.$refs.playlist.show()
       }
     },
     watch: {
@@ -469,7 +470,8 @@
     components: {
       ProgressBar,
       ProgressCircle,
-      BaseScroll
+      BaseScroll,
+      PlayList
     }
   }
 </script>
