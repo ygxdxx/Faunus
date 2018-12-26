@@ -16,12 +16,23 @@
             </li>
           </ul>
         </div>
+        <div class="search-history" v-show="searchHistory.length">
+          <h1 class="title">
+            <span class="text">搜索历史</span>
+            <span class="clear">
+              <i class="icon-clear"></i>
+            </span>
+          </h1>
+          <search-list :searches="searchHistory"/>
+        </div>
       </div>
     </div>
     <div v-if="query" class="search-result">
       <search-suggest :query="query"
                       @onBeforeScroll="blurInput"
-                      ref="suggest"/>
+                      @selectSave="onSaveSearch"
+                      ref="suggest"
+      />
     </div>
     <transition name="slide">
       <router-view/>
@@ -32,8 +43,10 @@
 <script>
   import SearchBox from 'base/search-box/search-box'
   import SearchSuggest from 'components/search-suggest/search-suggest'
+  import SearchList from 'base/search-list/search-list'
   import {getHotKeys} from 'api/search'
   import {ERR_OK} from 'api/config'
+  import {mapGetters, mapActions} from 'vuex'
 
   export default {
     name: 'Search',
@@ -48,9 +61,18 @@
     },
     components: {
       SearchBox,
-      SearchSuggest
+      SearchSuggest,
+      SearchList
+    },
+    computed: {
+      ...mapGetters([
+        'searchHistory'
+      ])
     },
     methods: {
+      ...mapActions([
+        'saveSearchHistory'
+      ]),
       _getHotKeys () {
         getHotKeys().then((res) => {
           if (res.code === ERR_OK) {
@@ -64,6 +86,9 @@
       onEmitQuery (newVal) {
         console.log('on emit')
         this.query = newVal
+      },
+      onSaveSearch () {
+        this.saveSearchHistory(this.query)
       },
       blurInput () {
         this.$refs.searchBox.blur()

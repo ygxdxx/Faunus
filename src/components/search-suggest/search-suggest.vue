@@ -88,6 +88,7 @@
         })
       },
       onBeforeScroll () {
+        //使input失去焦点，让键盘收回
         this.$emit('onBeforeScroll')
       },
       onSelectItem (item) {
@@ -100,6 +101,8 @@
         } else {
           this.insertSong(item)
         }
+        //因为出现了搜索列表一定是search-box的query发生改变，从而传递给suggest的query发生改变，点击某一项之后，会将query保存
+        this.$emit('selectSave')
       },
       checkMore (data) {
         const song = data.song
