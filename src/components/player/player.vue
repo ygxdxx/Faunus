@@ -90,8 +90,7 @@
     <transition name="mini">
       <div v-show="!fullScreen"
            @click="onMiniClickOpen"
-           class="mini-player"
-      >
+           class="mini-player">
         <div class="icon">
           <img width="40"
                height="40"
@@ -135,6 +134,7 @@
   import LyricParser from 'lyric-parser'
   import BaseScroll from 'base/scroll/scroll'
   import PlayList from 'components/playlist/playlist'
+  import {playerMxin} from 'common/js/mixin'
 
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
@@ -142,6 +142,7 @@
 
   export default {
     name: 'Player',
+    mixins: [playerMxin],
     created () {
       this.touch = {}
     },
@@ -171,26 +172,15 @@
       miniPlayIcon () {
         return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
       },
-      iconMode () {
-        return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random'
-      },
       ...mapGetters([
         'fullScreen',
-        'playList',
-        'currentSong',
         'currentIndex',
-        'playing',
-        'mode',
-        'sequenceList'
+        'playing'
       ])
     },
     methods: {
       ...mapMutations({
-        setFullScreen: 'SET_FULLSCREEN',
-        setPlayingState: 'SET_PLAYING_STATE',
-        setCurrentIndex: 'SET_CURRENT_INDEX',
-        setPlayMode: 'SET_PLAYMODE',
-        setPlayList: 'SET_PLAYLIST'
+        setFullScreen: 'SET_FULLSCREEN'
       }),
       onPercentChange (newPercent) {
         const currentTime = this.currentSong.duration * newPercent
@@ -346,24 +336,6 @@
           scale
         }
       },
-      onModeChange () {
-        const currentMode = (this.mode + 1) % 3
-        this.setPlayMode(currentMode)
-        let list = null
-        if (currentMode === playMode.random) {
-          list = shuffle(this.sequenceList)
-        } else {
-          list = this.sequenceList
-        }
-        this._resetCurrentIndex(list)
-        this.setPlayList(list)
-      },
-      _resetCurrentIndex (list) {
-        let index = list.findIndex((item) => {
-          return item.id === this.currentSong.id
-        })
-        this.setCurrentIndex(index)
-      },
       getCurrentLyric () {
         this.currentSong.getLyric().then((lyric) => {
           this.currentLyric = new LyricParser(lyric, this._handleLyricCallback)
@@ -443,12 +415,15 @@
         this.$refs.middleL.style.opacity = opacity
         this.$refs.middleL.style[transitionDuration] = `${durationTime}ms`
       },
-      onShowPlayList(){
+      onShowPlayList () {
         this.$refs.playlist.show()
       }
     },
     watch: {
       currentSong (newSong, oldSong) {
+        if (!newSong.id) {
+          return
+        }
         if (newSong.id === oldSong.id) {
           return
         }

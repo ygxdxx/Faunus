@@ -6,9 +6,12 @@
       <div @click.stop class="list-wrapper">
         <div class="list-header">
           <h1 class="title">
-            <i class="icon"></i>
-            <span class="text"></span>
-            <span class="clear">
+            <i @click="onModeChange"
+               :class="iconMode"
+               class="icon">
+            </i>
+            <span class="text">{{modeText}}</span>
+            <span @click="onShowConfirm" class="clear">
               <i class="icon-clear"></i>
             </span>
           </h1>
@@ -16,8 +19,10 @@
         <base-scroll :data="sequenceList"
                      ref="scroller"
                      class="list-content">
-          <ul>
-            <li v-for="item of sequenceList"
+          <transition-group name="list" tag="ul">
+            <li v-for="(item,index) of sequenceList"
+                :key="item.id"
+                ref="listItem"
                 @click="onClickListSong(item,index)"
                 class="item">
               <i class="current" :class="getCurrentIcon(item)"></i>
@@ -25,11 +30,11 @@
               <span class="like">
                 <i class="icon-not-favorite"></i>
               </span>
-              <span class="delete">
+              <span @click.stop="onDeleteListSong(item)" class="delete">
                 <i class="icon-delete"></i>
               </span>
             </li>
-          </ul>
+          </transition-group>
         </base-scroll>
         <div class="list-operate">
           <div class="add">
@@ -41,41 +46,49 @@
           <span>关闭</span>
         </div>
       </div>
+      <confirm ref="dialog"
+               @dialog-confirm="onConfirmClear"
+               confirmText="清空"
+               text="是否清空播放列表"/>
     </div>
   </transition>
 </template>
 
 <script>
-  import {mapGetters, mapMutations} from 'vuex'
+  import {mapActions} from 'vuex'
   import BaseScroll from 'base/scroll/scroll'
   import {playMode} from 'common/js/config'
+  import Confirm from 'base/confirm/confirm'
+  import {playerMxin} from 'common/js/mixin'
 
   export default {
     name: 'playlist',
+    mixins: [playerMxin],
     data () {
       return {
         showFlag: false
       }
     },
     computed: {
-      ...mapGetters([
-        'sequenceList',
-        'currentSong',
-        'playlist'
-      ])
+      modeText () {
+        return this.mode === playMode.sequence ? '顺序播放' : this.mode === playMode.random ? '随机播放' : '单曲循环'
+      }
     },
     components: {
-      BaseScroll
+      BaseScroll,
+      Confirm
     },
     methods: {
-      ...mapMutations({
-        setCurrentIndex: 'SET_CURRENT_INDEX'
-      }),
+      ...mapActions([
+        'deleteSong',
+        'deleteSongList'
+      ]),
       show () {
         this.showFlag = true
         setTimeout(() => {
           this.$refs.scroller.refresh()
         }, 20)
+        this.scrollToCurrent(this.currentSong)
       },
       hide () {
         this.showFlag = false
@@ -89,11 +102,41 @@
       },
       onClickListSong (item, index) {
         if (this.mode === playMode.random) {
-          index = this.playlist.findIndex((song) => {
+          index = this.playList.findIndex((song) => {
             return item.id === song.id
           })
         }
         this.setCurrentIndex(index)
+        this.setPlayingState(true)
+      },
+      //删除列表中的歌曲
+      onDeleteListSong (item) {
+        this.deleteSong(item)
+        if (!this.playList.length) {
+          this.hide()
+        }
+      },
+      //让列表滚动到正在播放的位置
+      scrollToCurrent (current) {
+        const index = this.sequenceList.findIndex((song) => {
+          return current.id === song.id
+        })
+        this.$refs.scroller.scrollToElement(this.$refs.listItem[index], 300)
+      },
+      onShowConfirm () {
+        this.$refs.dialog.show()
+      },
+      //confirm组件发送的确认消息
+      onConfirmClear () {
+        this.deleteSongList()
+      }
+    },
+    watch: {
+      currentSong (newSong, oldSong) {
+        if (!this.showFlag || newSong.id === oldSong.id) {
+          return
+        }
+        this.scrollToCurrent(newSong)
       }
     }
   }

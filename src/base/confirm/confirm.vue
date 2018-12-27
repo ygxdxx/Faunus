@@ -1,6 +1,8 @@
 <template>
   <transition name="confirm-slide">
-    <div v-show="showFlag" class="confirm">
+    <div v-show="showFlag"
+         @click.stop
+         class="confirm">
       <div class="confirm-wrapper">
         <div class="confirm-content">
           <p class="text">{{text}}</p>
