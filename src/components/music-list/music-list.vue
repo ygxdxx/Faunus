@@ -143,6 +143,7 @@
           index: index
         })
       },
+      //实现歌曲随机播放
       onRandomClick () {
         this.clickRandomSongPlay({
           list: this.songs

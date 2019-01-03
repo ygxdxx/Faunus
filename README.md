@@ -1,21 +1,12 @@
-# faunus
+## 项目介绍
 
-> a music player of Vue
+> 使用Vue全家桶完成的音乐播放器开发，完整实现了WebApp音乐播放器完整的各个功能。
 
-## Build Setup
+## 项目功能
+1. 
 
-``` bash
-# install dependencies
-npm install
+### 技术细节
+1. 使用原生 JavaScript 语法配合 ES6新特性进行开发， 编码规范；
 
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
-```
-
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+### 效果展示 
+![avatar](/Users/Cortana/Desktop/屏幕快照\ 2019-01-04\ 00.37.14.png)
