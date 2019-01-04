@@ -14,14 +14,23 @@
 9. 使用localStorage进行数据的本地持久化存储；
 10.对于多个组件之间重复的功能，使用mixin进行独立抽取，减少代码量；
 
-### **效果展示** 
-1. 推荐页
+### **页面展示** 
+一. **推荐页**
+
 ![avatar](https://raw.githubusercontent.com/ygxdxx/Faunus/master/static/img_folder/1.png)
-2. 歌手页
+
+二. **歌手页**
+
 ![avatar](https://raw.githubusercontent.com/ygxdxx/Faunus/master/static/img_folder/2.png)
-3. 搜索页
+
+三. **搜索页**
+
 ![avatar](https://raw.githubusercontent.com/ygxdxx/Faunus/master/static/img_folder/3.png)
-4. 播放器
+
+四. **播放器**
+
 ![avatar](https://raw.githubusercontent.com/ygxdxx/Faunus/master/static/img_folder/4.png)
-5. 歌手详情页
+
+五. **歌手详情页**
+
 ![avatar](https://raw.githubusercontent.com/ygxdxx/Faunus/master/static/img_folder/5.png)
